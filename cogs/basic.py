@@ -3,7 +3,10 @@ import discord
 from discord import app_commands
 from cogs.rules import rules
 from cogs.view import view as gameview
+from cogs import data
 import random
+import os
+import json
 
 class basic(commands.Cog):
     def __init__(self, bot):
@@ -105,21 +108,25 @@ class basic(commands.Cog):
                         if view.chosen is None:
                             await interaction.followup.send("⚠️ 超時未選擇！正義陣營獲勝！")
                             await self.end(interaction, winner, game)
+                            self.record(game, interaction.guild_id, winner)
                             return
                         elif view.chosen.id == game.players.merlin.getPlayer().id:
                             winner = "evil"
                             await interaction.followup.send("⚔️ **刺殺成功！邪惡陣營獲勝！**")
                             await self.end(interaction, winner, game)
+                            self.record(game, interaction.guild_id, winner)
                             return
                         else:
                             winner = "justice"
                             await interaction.followup.send("🛡️ **刺殺失敗！正義陣營獲勝！**")
                             await self.end(interaction, winner, game)
+                            self.record(game, interaction.guild_id, winner)
                             return
                     
                     elif winner == "evil":
                         await interaction.followup.send("🗡️ **邪惡陣營獲勝！**")
                         await self.end(interaction, winner, game)
+                        self.record(game, interaction.guild_id, winner)
                         return
                 
         except Exception as e:
@@ -133,6 +140,7 @@ class basic(commands.Cog):
         
 
     @app_commands.command(name = 'stop', description = 'Stop a game')
+    @app_commands.guild_only()
     async def stop(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
 
@@ -216,9 +224,59 @@ class basic(commands.Cog):
         view = gameview.EndView(winner, game)
         embed = view.create_embed()
         await interaction.followup.send(embed = embed, view = view)
-        
 
-        
+    def record(self, game : rules.Game, guild_id : int, winner : str):
+        record_dir = "records"
+        if not os.path.exists(record_dir):
+            os.makedirs(record_dir)
+
+        file_name = f"{record_dir}/guild_{guild_id}_records.json"
+        exsisted_player_ids : list[int] = []
+        if os.path.exists(file_name):
+            result_list : list[dict] = []
+            players_data : list[dict] = []
+            with open(file_name, "r") as f:
+                records : list[dict] = json.load(f)
+                records = records[0]
+                players_data : list[dict] = records["players_data"]
+                exsisted_player_ids = data.data.getExsitedPlayersIDs(players_data)
+
+            for player in game.getAllPlayers():
+                camp = game.getProfie(player.id).camp
+                if player.id in exsisted_player_ids:
+                    win_matches = data.data.getWinMatches(player.id, players_data)
+                    loss_matches = data.data.getLossMatches(player.id, players_data)
+                    if (camp == "justice" and winner == "justice") or (camp == "evil" and winner == "evil"):
+                        win_matches += 1
+                    else:
+                        loss_matches += 1
+                    
+                    result_list.append({
+                        "player_id": player.id,
+                        "win_matches": win_matches,
+                        "loss_matches": loss_matches})
+                    
+                else:
+                    result_list.append({
+                        "player_id": player.id,
+                        "win_matches": 1 if (camp == "justice" and winner == "justice") or (camp == "evil" and winner == "evil") else 0,
+                        "loss_matches": 0 if (camp == "justice" and winner == "justice") or (camp == "evil" and winner == "evil") else 1
+                    })
+
+            with open(file_name, "w") as f:
+                json.dump([{"players_data": result_list}], f, indent = 4)
+
+        else:
+            result_list : list[dict] = []
+            for player in game.getAllPlayers():
+                camp = game.getProfie(player.id).camp
+                result_list.append({
+                    "player_id": player.id,
+                    "win_matches": 1 if (camp == "justice" and winner == "justice") or (camp == "evil" and winner == "evil") else 0,
+                    "loss_matches": 0 if (camp == "justice" and winner == "justice") or (camp == "evil" and winner == "evil") else 1
+                })
+            with open(file_name, "w") as f:
+                json.dump([{"players_data": result_list}], f, indent = 4)
 
 async def setup(bot : commands.Bot):
     await bot.add_cog(basic(bot))

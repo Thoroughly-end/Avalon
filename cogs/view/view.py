@@ -156,6 +156,7 @@ class ChooseView(discord.ui.View):
             return True
         
     @discord.ui.button(label = "1️⃣", style = discord.ButtonStyle.green)
+    @app_commands.guild_only()
     async def player1(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.kingCheck(interaction) == False:
             await interaction.response.send_message("⚠️ 只有國王可以選擇人選！", ephemeral = True)
@@ -169,6 +170,7 @@ class ChooseView(discord.ui.View):
         await interaction.response.edit_message(embed = self.create_embed(), view = self)
     
     @discord.ui.button(label = "2️⃣", style = discord.ButtonStyle.green)
+    @app_commands.guild_only()
     async def player2(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.kingCheck(interaction) == False:
             await interaction.response.send_message("⚠️ 只有國王可以選擇人選！", ephemeral = True)
@@ -181,6 +183,7 @@ class ChooseView(discord.ui.View):
         await interaction.response.edit_message(embed = self.create_embed(), view = self)
 
     @discord.ui.button(label = "3️⃣", style = discord.ButtonStyle.green)
+    @app_commands.guild_only()
     async def player3(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.kingCheck(interaction) == False:
             await interaction.response.send_message("⚠️ 只有國王可以選擇人選！", ephemeral = True)
@@ -193,6 +196,7 @@ class ChooseView(discord.ui.View):
         await interaction.response.edit_message(embed = self.create_embed(), view = self)
 
     @discord.ui.button(label = "4️⃣", style = discord.ButtonStyle.green)
+    @app_commands.guild_only()
     async def player4(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.kingCheck(interaction) == False:
             await interaction.response.send_message("⚠️ 只有國王可以選擇人選！", ephemeral = True)
@@ -205,6 +209,7 @@ class ChooseView(discord.ui.View):
         await interaction.response.edit_message(embed = self.create_embed(), view = self)
 
     @discord.ui.button(label = "5️⃣", style = discord.ButtonStyle.green)
+    @app_commands.guild_only()
     async def player5(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.kingCheck(interaction) == False:
             await interaction.response.send_message("⚠️ 只有國王可以選擇人選！", ephemeral = True)
@@ -217,6 +222,7 @@ class ChooseView(discord.ui.View):
         await interaction.response.edit_message(embed = self.create_embed(), view = self)
 
     @discord.ui.button(label = "6️⃣", style = discord.ButtonStyle.green)
+    @app_commands.guild_only()
     async def player6(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.kingCheck(interaction) == False:
             await interaction.response.send_message("⚠️ 只有國王可以選擇人選！", ephemeral = True)
@@ -229,6 +235,7 @@ class ChooseView(discord.ui.View):
         await interaction.response.edit_message(embed = self.create_embed(), view = self)
 
     @discord.ui.button(label = "✅", style = discord.ButtonStyle.blurple)
+    @app_commands.guild_only()
     async def go(self, interaction: discord.Interaction, button:discord.ui.Button):
         if self.kingCheck(interaction) == False:
             await interaction.response.send_message("⚠️ 只有國王可以選擇人選！", ephemeral = True)
@@ -283,6 +290,7 @@ class VoteView(discord.ui.View):
                 pass
     
     @discord.ui.button(label = "✅ 贊成", style = discord.ButtonStyle.green)
+    @app_commands.guild_only()
     async def approve(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user not in self.players:
             await interaction.response.send_message("⚠️ 你不在這個遊戲中！", ephemeral = True)
@@ -302,6 +310,7 @@ class VoteView(discord.ui.View):
             self.stop()
     
     @discord.ui.button(label = "❌ 反對", style = discord.ButtonStyle.red)
+    @app_commands.guild_only()
     async def reject(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user not in self.players:
             await interaction.response.send_message("⚠️ 你不在這個遊戲中！", ephemeral = True)
@@ -448,5 +457,23 @@ class EndView(discord.ui.View):
             title = "遊戲結束",
             description = desc,
             color = discord.Color.gold() if self.winner == "正義" else discord.Color.red()
+        )
+        return embed
+    
+
+class WinRateView(discord.ui.View):
+    def __init__(self, win_rate : float, win_matches : int, loss_matches : int, interaction : discord.Interaction):
+        super().__init__(timeout = None)
+        self.win_rate = win_rate
+        self.win_matches = win_matches
+        self.loss_matches = loss_matches
+        self.interaction = interaction
+
+    def create_embed(self):
+        embed = discord.Embed(
+            title = "你的勝率",
+            description = f"勝利場數：{self.win_matches}\n失敗場數：{self.loss_matches}\n勝率：{self.win_rate:.2f}%",
+            url = self.interaction.user.avatar.url if self.interaction.user.avatar else None,
+            color = discord.Color.purple()
         )
         return embed

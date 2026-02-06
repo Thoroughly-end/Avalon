@@ -82,3 +82,6 @@ class Game:
             return "evil"
         else:
             return None
+        
+    def getAllPlayers(self):
+        return self.final_players
