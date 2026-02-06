@@ -4,7 +4,7 @@ from cogs.rules import rules
 
 class GameView(discord.ui.View):
     def __init__(self, author):
-        super().__init__(timeout = 600)
+        super().__init__(timeout = 1200)
         self.players : list[discord.User | discord.Member] = []
         self.host : discord.Member = author
         self.players.append(author)
@@ -366,3 +366,87 @@ class MissionView(discord.ui.View):
         self.status = False
         await interaction.response.edit_message(content="❌ **已經選擇失敗！**", view = None, embed = None)
         self.stop()
+
+
+class AssassinationView(discord.ui.View):
+    def __init__(self, game : rules.Game, assassin : discord.User | discord.Member):
+        super().__init__(timeout = 600)
+        self.game = game
+        self.assassin = assassin
+        self.chosen : discord.User | discord.Member | None = None
+        self.message: discord.Message | None = None
+        self.players_except_assassin = [p for p in self.game.final_players if p.id != self.assassin.id]
+
+    def create_embed(self):
+        desc = "**選擇你要刺殺的對象：**\n"
+        for i, p in enumerate(self.players_except_assassin, 1):
+            desc += f"{i}. {p.display_name}\n"
+        
+        embed = discord.Embed(
+            title = "刺殺階段",
+            description = desc,
+            color = discord.Color.blue()
+        )
+        return embed
+    
+    async def on_timeout(self):
+        for child in self.children:
+            if isinstance(child, (discord.ui.Button, discord.ui.Select)):
+                child.disabled = True
+
+        if self.message is not None:
+            try:
+                await self.message.edit(content="⚠️ 大廳逾時已關閉。", view=self)
+            except discord.NotFound:
+                pass
+
+    @discord.ui.button(label = "1️⃣", style = discord.ButtonStyle.green)
+    async def player1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.chosen = self.players_except_assassin[0]
+        await interaction.response.edit_message(content=f"⚔️ **你選擇刺殺 {self.chosen.display_name}！**", view = None, embed = None)
+        self.stop()
+    
+    @discord.ui.button(label = "2️⃣", style = discord.ButtonStyle.green)
+    async def player2(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.chosen = self.players_except_assassin[1]
+        await interaction.response.edit_message(content=f"⚔️ **你選擇刺殺 {self.chosen.display_name}！**", view = None, embed = None)
+        self.stop()
+
+    @discord.ui.button(label = "3️⃣", style = discord.ButtonStyle.green)
+    async def player3(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.chosen = self.players_except_assassin[2]
+        await interaction.response.edit_message(content=f"⚔️ **你選擇刺殺 {self.chosen.display_name}！**", view = None, embed = None)
+        self.stop()
+
+    @discord.ui.button(label = "4️⃣", style = discord.ButtonStyle.green)
+    async def player4(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.chosen = self.players_except_assassin[3]
+        await interaction.response.edit_message(content=f"⚔️ **你選擇刺殺 {self.chosen.display_name}！**", view = None, embed = None)
+        self.stop()
+
+    @discord.ui.button(label = "5️⃣", style = discord.ButtonStyle.green)
+    async def player5(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.chosen = self.players_except_assassin[4]
+        await interaction.response.edit_message(content=f"⚔️ **你選擇刺殺 {self.chosen.display_name}！**", view = None, embed = None)
+        self.stop()
+
+
+class EndView(discord.ui.View):
+    def __init__(self, winner : str, game : rules.Game):
+        super().__init__(timeout = None)
+        self.winner = winner
+        self.game = game
+
+    def create_embed(self):
+        desc = f"遊戲結束！**{self.winner} 勝利！**\n\n"
+        desc += "**玩家身份：**\n"
+        for player in self.game.final_players:
+            agent = self.game.search(player.id)
+            desc += f"{player.display_name} - {agent}\n"
+        
+        embed = discord.Embed(
+            title = "遊戲結束",
+            description = desc,
+            color = discord.Color.gold() if self.winner == "正義" else discord.Color.red()
+        )
+        return embed

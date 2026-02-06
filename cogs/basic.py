@@ -94,10 +94,32 @@ class basic(commands.Cog):
                     if winner is None:
                         continue
                     elif winner == "justice":
-                        await interaction.followup.send("⚔️ **正義陣營獲勝！**")
-                        return
+                        assassin = game.players.assassin.getPlayer()
+                        view = gameview.AssassinationView(game, assassin)
+                        embed = view.create_embed()
+                        await interaction.followup.send("🗡️ **刺殺階段開始！**")
+                        message = await assassin.send(embed = embed, view = view)
+                        view.message = message
+                        await view.wait()
+
+                        if view.chosen is None:
+                            await interaction.followup.send("⚠️ 超時未選擇！正義陣營獲勝！")
+                            await self.end(interaction, winner, game)
+                            return
+                        elif view.chosen.id == game.players.merlin.getPlayer().id:
+                            winner = "evil"
+                            await interaction.followup.send("⚔️ **刺殺成功！邪惡陣營獲勝！**")
+                            await self.end(interaction, winner, game)
+                            return
+                        else:
+                            winner = "justice"
+                            await interaction.followup.send("🛡️ **刺殺失敗！正義陣營獲勝！**")
+                            await self.end(interaction, winner, game)
+                            return
+                    
                     elif winner == "evil":
                         await interaction.followup.send("🗡️ **邪惡陣營獲勝！**")
+                        await self.end(interaction, winner, game)
                         return
                 
         except Exception as e:
@@ -189,6 +211,12 @@ class basic(commands.Cog):
             if view.status == False:
                 return "fail"
         return "success"
+    
+    async def end(self, interaction: discord.Interaction, winner : str, game : rules.Game):
+        view = gameview.EndView(winner, game)
+        embed = view.create_embed()
+        await interaction.followup.send(embed = embed, view = view)
+        
 
         
 
