@@ -21,6 +21,10 @@ async def load_extensions():
 
 @bot.tree.command()
 async def reload(interaction: discord.Interaction):
+    if interaction.user.id != config.OWNER_ID:
+        await interaction.response.send_message("You don't have permission to use this command.", ephemeral = True)
+        return
+    
     await interaction.response.defer()
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):

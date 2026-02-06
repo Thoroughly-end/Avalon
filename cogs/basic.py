@@ -236,8 +236,7 @@ class basic(commands.Cog):
             result_list : list[dict] = []
             players_data : list[dict] = []
             with open(file_name, "r") as f:
-                records : list[dict] = json.load(f)
-                records = records[0]
+                records : dict = json.load(f)
                 players_data : list[dict] = records["players_data"]
                 exsisted_player_ids = data.data.getExsitedPlayersIDs(players_data)
 
@@ -264,7 +263,7 @@ class basic(commands.Cog):
                     })
 
             with open(file_name, "w") as f:
-                json.dump([{"players_data": result_list}], f, indent = 4)
+                json.dump({"players_data":result_list}, f, indent = 4)
 
         else:
             result_list : list[dict] = []
@@ -276,7 +275,9 @@ class basic(commands.Cog):
                     "loss_matches": 0 if (camp == "justice" and winner == "justice") or (camp == "evil" and winner == "evil") else 1
                 })
             with open(file_name, "w") as f:
-                json.dump([{"players_data": result_list}], f, indent = 4)
+                json.dump({"players_data":result_list}, f, indent = 4)
+
+
 
 async def setup(bot : commands.Bot):
     await bot.add_cog(basic(bot))

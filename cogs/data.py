@@ -9,7 +9,7 @@ class data(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def getWinMatches(self, player_id : int, players_data : list[dict]) -> int:
+    def getWinMatches(player_id : int, players_data : list[dict]) -> int:
         win_matches = 0
         for record in players_data:
             if record["player_id"] == player_id:
@@ -17,7 +17,7 @@ class data(commands.Cog):
                 break
         return win_matches
         
-    def getLossMatches(self, player_id : int, players_data : list[dict]) -> int:
+    def getLossMatches(player_id : int, players_data : list[dict]) -> int:
         loss_matches = 0
         for record in players_data:
             if record["player_id"] == player_id:
@@ -25,7 +25,7 @@ class data(commands.Cog):
                 break
         return loss_matches
     
-    def getExsitedPlayersIDs(self, players_data : list[dict]) -> list[int]:
+    def getExsitedPlayersIDs(players_data : list[dict]) -> list[int]:
         ids : list[int] = []
         for record in players_data:
             ids.append(record["player_id"])
@@ -40,11 +40,10 @@ class data(commands.Cog):
         file = f"records/guide_{interaction.guild_id}_records.json"
         if os.path.exists(file):
             with open(file, "r") as f:
-                records : list[dict] = json.load(f)
-                records = records[0]
+                records : dict = json.load(f)
                 players_data : list[dict] = records["players_data"]
-                win_matches = self.getWinMatches(interaction.user.id, players_data)
-                loss_matches = self.getLossMatches(interaction.user.id, players_data)
+                win_matches = data.getWinMatches(interaction.user.id, players_data)
+                loss_matches = data.getLossMatches(interaction.user.id, players_data)
                 if win_matches + loss_matches > 0:
                     win_rate = win_matches / (win_matches + loss_matches) * 100
                 else:
