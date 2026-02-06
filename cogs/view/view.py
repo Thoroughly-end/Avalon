@@ -473,7 +473,7 @@ class WinRateView(discord.ui.View):
         embed = discord.Embed(
             title = "你的勝率",
             description = f"勝利場數：{self.win_matches}\n失敗場數：{self.loss_matches}\n勝率：{self.win_rate:.2f}%",
-            url = self.interaction.user.avatar.url if self.interaction.user.avatar else None,
             color = discord.Color.purple()
         )
+        embed.set_thumbnail(url = self.interaction.user.display_avatar.url)
         return embed
